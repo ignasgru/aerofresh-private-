@@ -2,6 +2,14 @@
   "name": "@aerofresh/api",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "wrangler dev --config wrangler.toml" },
-  "devDependencies": { "typescript": "^5.5.4", "@cloudflare/workers-types": "^4.20240821.0" }
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.toml"
+  },
+  "dependencies": {
+    "@aerofresh/db": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "@cloudflare/workers-types": "^4.20240821.0"
+  }
 }
