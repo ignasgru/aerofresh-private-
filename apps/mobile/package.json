@@ -1,0 +1,16 @@
+{
+  "name": "@aerofresh/mobile",
+  "private": true,
+  "main": "App.tsx",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "expo": "^49.0.0",
+    "react": "18.2.0",
+    "react-native": "0.72.4",
+    "@expo/vector-icons": "^13.0.0"
+  }
+}
