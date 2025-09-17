@@ -1,0 +1,11 @@
+{
+  "name": "@aerofresh/db",
+  "private": true,
+  "type": "module",
+  "devDependencies": { "prisma": "^5.18.0" },
+  "dependencies": { "@prisma/client": "^5.18.0" },
+  "scripts": {
+    "gen": "prisma generate",
+    "migrate": "prisma migrate dev"
+  }
+}
