@@ -1,12 +1,103 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model Aircraft {
-  tail        String   @id
-  make        String?
-  model       String?
-  typeCode    String?
-  year        Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tail      String @id
+  serial    String?
+  make      String?
+  model     String?
+  typeCode  String?
+  year      Int?
+  engine    String?
+  seats     Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owners    AircraftOwner[]
+  accidents Accident[]
+  events    EventLive[]
+}
+
+model Owner {
+  id       String @id @default(uuid())
+  name     String
+  type     String?
+  state    String?
+  country  String?
+  redacted Boolean?
+
+  aircrafts AircraftOwner[]
+}
+
+model AircraftOwner {
+  tail      String
+  ownerId   String
+  startDate DateTime?
+  endDate   DateTime?
+
+  aircraft Aircraft @relation(fields: [tail], references: [tail])
+  owner    Owner    @relation(fields: [ownerId], references: [id])
+
+  @@id([tail, ownerId])
+}
+
+model AdDirective {
+  id            Int @id @default(autoincrement())
+  makeModelKey  String
+  ref           String
+  summary       String?
+  effectiveDate DateTime?
+}
+
+model Accident {
+  id        Int @id @default(autoincrement())
+  tail      String
+  date      DateTime?
+  severity  String?
+  lat       Float?
+  lon       Float?
+  narrative String?
+  injuries  Int?
+
+  aircraft Aircraft? @relation(fields: [tail], references: [tail])
+}
+
+model EventLive {
+  id     Int @id @default(autoincrement())
+  tail   String
+  ts     DateTime
+  lat    Float?
+  lon    Float?
+  alt    Float?
+  src    String?
+
+  aircraft Aircraft? @relation(fields: [tail], references: [tail])
+}
+
+model Airport {
+  icao      String @id
+  iata      String?
+  name      String?
+  lat       Float?
+  lon       Float?
+  elevation Int?
+  timezone  String?
+}
+
+model WeatherMetar {
+  id     Int @id @default(autoincrement())
+  icao   String
+  ts     DateTime
+  raw    String?
+  parsed Json?
+
+  airport Airport? @relation(fields: [icao], references: [icao])
+
+  @@index([icao])
 }
