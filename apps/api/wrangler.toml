@@ -1,0 +1,7 @@
+name = "aerofresh-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+
+[vars]
+# Safe public-ish flags can live here; real secrets go in GitHub ENV secrets or `wrangler secret put`
+ENV = "dev"
