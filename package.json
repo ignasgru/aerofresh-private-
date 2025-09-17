@@ -1,0 +1,17 @@
+{
+  "name": "aerofresh",
+  "private": true,
+  "packageManager": "pnpm@9",
+  "scripts": {
+    "dev:api": "wrangler dev --config apps/api/wrangler.toml",
+    "dev": "pnpm -C apps/api dev",
+    "build": "turbo build",
+    "lint": "eslint .",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "eslint": "^9.9.0",
+    "turbo": "^2.0.6"
+  }
+}
