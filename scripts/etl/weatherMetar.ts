@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../../packages/db/src/client';
 
 // Fetch METAR weather reports from an external API. You may use AVWX or NOAA.
 async function fetchMetarData(): Promise<Array<{ icao: string; ts: Date; raw: string; parsed: any }>> {
@@ -14,19 +12,23 @@ export async function loadWeatherMetar(): Promise<void> {
   const reports = await fetchMetarData();
   for (const report of reports) {
     const { icao, ts, raw, parsed } = report;
-    // Upsert into the WeatherMetar table. Adjust the unique identifier as needed.
-    await prisma.weatherMetar.upsert({
-      where: { icao_ts: { icao, ts } },
-      update: { raw, parsed },
-      create: { icao, ts, raw, parsed },
+    // Insert into the WeatherMetar table
+    await prisma.weatherMetar.create({
+      data: { icao, ts, raw, parsed },
     });
   }
   console.log('Weather METAR sync complete');
 }
 
 if (require.main === module) {
-  loadWeatherMetar().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+  loadWeatherMetar()
+    .then(() => {
+      console.log('Weather METAR ETL completed successfully');
+      prisma.$disconnect();
+    })
+    .catch((err) => {
+      console.error('Weather METAR ETL failed:', err);
+      prisma.$disconnect();
+      process.exit(1);
+    });
 }

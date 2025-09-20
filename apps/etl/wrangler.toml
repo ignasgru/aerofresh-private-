@@ -1,0 +1,52 @@
+name = "aerofresh-etl-loader"
+main = "src/loader.ts"
+compatibility_date = "2024-09-01"
+
+[env.staging]
+name = "aerofresh-etl-loader-staging"
+compatibility_date = "2024-09-01"
+
+[env.production]
+name = "aerofresh-etl-loader-prod"
+compatibility_date = "2024-09-01"
+
+# Scheduled trigger for ETL jobs
+[triggers]
+crons = ["0 3 * * *"]  # daily 03:00 UTC (FAA/NTSB/AD)
+
+# Queue configuration
+[[queues.producers]]
+queue = "etl-jobs"
+binding = "ETL_QUEUE"
+
+# Consumer worker configuration (second worker in same repo)
+[env.consumer]
+name = "aerofresh-etl-consumer"
+main = "src/consumer.ts"
+compatibility_date = "2024-09-01"
+
+[[env.consumer.queues.consumers]]
+queue = "etl-jobs"
+max_batch_size = 50
+max_batch_timeout = 5
+
+# Environment variables
+[vars]
+ENV = "staging"
+
+# Secrets (set via wrangler secret put)
+# DATABASE_URL - PostgreSQL connection string with PostGIS
+# FAA_API_KEY - FAA API key (optional)
+# NTSB_API_KEY - NTSB API key (optional)
+# AVWX_TOKEN - Aviation weather API token (optional)
+# OPENSKY_USERNAME - OpenSky Network username (optional)
+# OPENSKY_PASSWORD - OpenSky Network password (optional)
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# KV namespaces for caching (optional)
+# [[kv_namespaces]]
+# binding = "ETL_CACHE"
+# id = "your-kv-namespace-id"

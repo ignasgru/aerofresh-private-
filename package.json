@@ -1,17 +1,38 @@
 {
   "name": "aerofresh",
   "private": true,
-  "packageManager": "pnpm@9",
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev:api": "wrangler dev --config apps/api/wrangler.toml",
-    "dev": "pnpm -C apps/api dev",
+    "dev:web": "pnpm -C apps/web dev",
+    "dev:mobile": "pnpm -C apps/mobile start",
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
     "build": "turbo build",
     "lint": "eslint .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "db:generate": "pnpm -C packages/db prisma generate",
+    "db:push": "pnpm -C packages/db prisma db push",
+    "db:seed": "pnpm -C packages/db prisma db seed",
+    "etl:airports": "cd scripts && pnpm etl:airports",
+    "etl:faa": "cd scripts && pnpm etl:faa",
+    "etl:ntsb": "cd scripts && pnpm etl:ntsb",
+    "etl:live": "cd scripts && pnpm etl:live",
+    "etl:all": "pnpm etl:airports && pnpm etl:faa && pnpm etl:ntsb && pnpm etl:live",
+    "test": "turbo test",
+    "test:api": "pnpm -C apps/api test",
+    "test:web": "pnpm -C apps/web test"
   },
   "devDependencies": {
-    "typescript": "^5.5.4",
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.0",
     "eslint": "^9.9.0",
-    "turbo": "^2.0.6"
+    "ts-node": "^10.9.0",
+    "turbo": "^2.0.6",
+    "typescript": "^5.5.4",
+    "wrangler": "^4.38.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.0",
+    "papaparse": "^5.4.0"
   }
 }

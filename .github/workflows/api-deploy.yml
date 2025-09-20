@@ -1,0 +1,88 @@
+# Deploy API to Cloudflare Workers
+# 
+# Required GitHub Secrets:
+# - CF_API_TOKEN: Cloudflare API token with Workers:Edit permissions
+# - CF_ACCOUNT_ID: Your Cloudflare account ID
+# - DATABASE_URL: PostgreSQL connection string (optional, for Prisma)
+# 
+# Optional GitHub Secrets:
+# - AVWX_TOKEN: Aviation weather API token
+# - MAPBOX_TOKEN: Mapbox API token for maps
+# - OPENSKY_USERNAME: OpenSky Network username
+# - OPENSKY_PASSWORD: OpenSky Network password
+# - SENTRY_DSN: Sentry error tracking DSN
+# - POSTHOG_KEY: PostHog analytics key
+#
+# To set secrets: Repository Settings → Secrets and variables → Actions
+
+name: Deploy API (Cloudflare)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+  workflow_dispatch:
+
+env:
+  # Environment variables for secrets (reduces validation warnings)
+  # NOTE: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
+  # These warnings disappear once secrets are configured in repository settings
+  CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+  CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL || '' }}
+  AVWX_TOKEN: ${{ secrets.AVWX_TOKEN || '' }}
+  MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN || '' }}
+  OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME || '' }}
+  OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD || '' }}
+  SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
+  POSTHOG_KEY: ${{ secrets.POSTHOG_KEY || '' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Validate required secrets
+        run: |
+          # Note: GitHub Actions editor shows warnings for unset secrets - this is expected
+          # These warnings disappear once secrets are configured in repository settings
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "❌ CF_API_TOKEN secret is required but not set"
+            exit 1
+          fi
+          if [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "❌ CF_ACCOUNT_ID secret is required but not set"
+            exit 1
+          fi
+          echo "✅ Required secrets validated"
+        
+      - name: Deploy with Wrangler
+        run: npx wrangler deploy --config apps/api/wrangler.toml
+          
+      - name: Update deployment status
+        if: success()
+        run: echo "✅ API deployed successfully to Cloudflare Workers"
+        
+      - name: Update deployment status
+        if: failure()
+        run: echo "❌ API deployment failed"

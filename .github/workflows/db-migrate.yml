@@ -1,0 +1,61 @@
+# Run Database Migrations with Prisma
+# 
+# Required GitHub Secrets:
+# - DATABASE_URL: PostgreSQL connection string with PostGIS
+#
+# To set secrets: Repository Settings → Secrets and variables → Actions
+
+name: DB Migrate
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "packages/db/**"
+      - "apps/api/**"
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Validate required secrets
+        run: |
+          # NOTE: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
+          # These warnings disappear once DATABASE_URL is configured in repository settings
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "❌ DATABASE_URL secret is required but not set"
+            exit 1
+          fi
+          echo "✅ Required secrets validated"
+        
+      - name: Run Prisma migrations
+        run: pnpm -C packages/db prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          
+      - name: Update migration status
+        if: success()
+        run: echo "✅ Database migrations completed successfully"
+        
+      - name: Update migration status
+        if: failure()
+        run: echo "❌ Database migration failed"

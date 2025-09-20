@@ -1,0 +1,25 @@
+{
+  "name": "@aerofresh/etl",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.toml",
+    "dev:staging": "wrangler dev --config wrangler.toml --env staging",
+    "dev:production": "wrangler dev --config wrangler.toml --env production",
+    "build": "echo 'Build complete - TypeScript compilation handled by Wrangler'",
+    "deploy": "wrangler deploy --config wrangler.toml",
+    "deploy:staging": "wrangler deploy --config wrangler.toml --env staging",
+    "deploy:production": "wrangler deploy --config wrangler.toml --env production",
+    "deploy:consumer": "wrangler deploy --config wrangler.toml --env consumer",
+    "tail": "wrangler tail aerofresh-etl-loader",
+    "tail:consumer": "wrangler tail aerofresh-etl-consumer"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.0",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.5.4"
+  }
+}

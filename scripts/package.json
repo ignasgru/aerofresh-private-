@@ -1,0 +1,17 @@
+{
+  "name": "aerofresh-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ETL scripts for AeroFresh",
+  "scripts": {
+    "etl:airports": "tsx etl/airports.ts",
+    "etl:faa": "tsx etl/faaRegistry.ts",
+    "etl:ntsb": "tsx etl/ntsbAccidents.ts",
+    "etl:live": "tsx etl/liveData.ts",
+    "etl:live:continuous": "tsx etl/liveData.ts continuous",
+    "etl:all": "pnpm etl:airports && pnpm etl:faa && pnpm etl:ntsb && pnpm etl:live"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}

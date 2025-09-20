@@ -2,6 +2,37 @@ name = "aerofresh-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-01"
 
+[env.production]
+name = "aerofresh-api-prod"
+compatibility_date = "2024-09-01"
+
+[env.staging]
+name = "aerofresh-api-staging"
+compatibility_date = "2024-09-01"
+
+# Environment variables
 [vars]
-# Safe public-ish flags can live here; real secrets go in GitHub ENV secrets or `wrangler secret put`
-ENV = "dev"
+ENV = "staging"
+
+# Secrets (set via wrangler secret put)
+# DATABASE_URL - PostgreSQL connection string with PostGIS
+# AVWX_TOKEN - Aviation weather API token (optional)
+# OPENSKY_USERNAME - OpenSky Network username (optional)
+# OPENSKY_PASSWORD - OpenSky Network password (optional)
+# MAPBOX_TOKEN - Mapbox API token for maps (optional)
+# SENTRY_DSN - Sentry error tracking DSN (optional)
+# POSTHOG_KEY - PostHog analytics key (optional)
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# KV namespaces for caching (optional)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+
+# Durable Objects for real-time features (optional)
+# [[durable_objects.bindings]]
+# name = "LIVE_TRACKING"
+# class_name = "LiveTrackingRoom"

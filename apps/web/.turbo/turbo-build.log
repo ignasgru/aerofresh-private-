@@ -1,0 +1,21 @@
+
+> @aerofresh/web@0.0.1 build /Users/ignasgru/aerofresh-private-/apps/web
+> next build
+
+   ▲ Next.js 15.5.3
+
+   Linting and checking validity of types ...
+ ⨯ ESLint: Failed to load config "next/core-web-vitals" to extend from. Referenced from: /Users/ignasgru/aerofresh-private-/apps/web/.eslintrc.json
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 10.1s
+   Collecting page data ...
+   Generating static pages (0/8) ...
+   Generating static pages (2/8) 
+   Generating static pages (4/8) 
+   Generating static pages (6/8) 
+ ✓ Generating static pages (8/8)
+   Finalizing page optimization ...
+   Collecting build traces ...
+ent for more info.
+
+ ELIFECYCLE  Command failed with exit code 1.

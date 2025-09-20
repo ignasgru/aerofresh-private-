@@ -3,13 +3,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --config wrangler.toml"
+    "dev": "wrangler dev --config wrangler.toml",
+    "dev:staging": "wrangler dev --config wrangler.toml --env staging",
+    "dev:production": "wrangler dev --config wrangler.toml --env production",
+    "build": "echo 'Build complete - TypeScript compilation handled by Wrangler'",
+    "deploy": "wrangler deploy --config wrangler.toml",
+    "deploy:staging": "wrangler deploy --config wrangler.toml --env staging",
+    "deploy:production": "wrangler deploy --config wrangler.toml --env production",
+    "deploy:etl": "wrangler deploy --config wrangler-etl.toml --env staging",
+    "tail": "wrangler tail aerofresh-api",
+    "tail:etl": "wrangler tail aerofresh-etl"
   },
   "dependencies": {
-    "@aerofresh/db": "workspace:*"
+    "@aerofresh/core": "workspace:*",
+    "@aerofresh/db": "workspace:*",
+    "@prisma/client": "^5.18.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.0",
+    "@vitest/ui": "^1.0.0",
     "typescript": "^5.5.4",
-    "@cloudflare/workers-types": "^4.20240821.0"
+    "vitest": "^1.0.0"
   }
 }

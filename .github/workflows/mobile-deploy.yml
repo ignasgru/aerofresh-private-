@@ -1,0 +1,62 @@
+name: Deploy Mobile (Expo EAS)
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "apps/mobile/**", "packages/**" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          # NOTE: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
+          # These warnings disappear once EXPO_TOKEN is configured in repository settings
+          token: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Install EAS CLI
+        run: npm install -g @expo/eas-cli
+        
+      - name: Build and submit to app stores
+        run: |
+          cd apps/mobile
+          eas build --platform all --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Submit OTA update
+        run: |
+          cd apps/mobile
+          eas update --branch production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
+      - name: Update deployment status
+        if: success()
+        run: echo "✅ Mobile app deployed successfully"
+        
+      - name: Update deployment status
+        if: failure()
+        run: echo "❌ Mobile deployment failed"

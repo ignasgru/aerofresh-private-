@@ -1,7 +1,7 @@
 // scripts/etl/adDirectives.ts
-// Skeleton ETL script for downloading Airworthiness Directives (ADs)
+// ETL script for downloading Airworthiness Directives (ADs)
 
-import { prisma } from "@aerofresh/db/src/client";
+import prisma from '../../packages/db/src/client';
 
 // NOTE: The FAA publishes ADs in PDF/HTML; you may need to scrape or parse them.
 // This script outlines the steps but does not implement full parsing logic.
@@ -23,18 +23,14 @@ export async function fetchAdDirectives(): Promise<void> {
 
   for (const ad of mockAds) {
     try {
-      await prisma.adDirective.upsert({
-        where: { ref: ad.ref },
-        update: {
-          makeModelKey: ad.makeModelKey,
-          summary: ad.summary,
-          effectiveDate: ad.effectiveDate,
-        },
-        create: {
+      await prisma.adDirective.create({
+        data: {
           ref: ad.ref,
           makeModelKey: ad.makeModelKey,
           summary: ad.summary,
           effectiveDate: ad.effectiveDate,
+          status: 'OPEN',
+          severity: 'MEDIUM',
         },
       });
     } catch (err) {
@@ -45,9 +41,15 @@ export async function fetchAdDirectives(): Promise<void> {
   console.log("Finished processing Airworthiness Directives");
 }
 
-if (require.main === module) {
-  fetchAdDirectives().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+if (import.meta.url === `file://${process.argv[1]}`) {
+  fetchAdDirectives()
+    .then(() => {
+      console.log('AD Directives ETL completed successfully');
+      prisma.$disconnect();
+    })
+    .catch((err) => {
+      console.error('AD Directives ETL failed:', err);
+      prisma.$disconnect();
+      process.exit(1);
+    });
 }

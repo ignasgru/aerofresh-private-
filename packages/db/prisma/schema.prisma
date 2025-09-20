@@ -3,8 +3,18 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
 model Aircraft {
@@ -22,11 +32,15 @@ model Aircraft {
   owners    AircraftOwner[]
   accidents Accident[]
   events    EventLive[]
+
+  @@index([make])
+  @@index([model])
+  @@index([year])
 }
 
 model Owner {
   id       String @id @default(uuid())
-  name     String
+  name     String @unique
   type     String?
   state    String?
   country  String?
@@ -50,9 +64,14 @@ model AircraftOwner {
 model AdDirective {
   id            Int @id @default(autoincrement())
   makeModelKey  String
-  ref           String
+  ref           String @unique
   summary       String?
   effectiveDate DateTime?
+  status        String? // OPEN, CLOSED, APPLICABLE
+  severity      String? // HIGH, MEDIUM, LOW
+
+  @@index([makeModelKey])
+  @@index([status])
 }
 
 model Accident {
@@ -64,8 +83,14 @@ model Accident {
   lon       Float?
   narrative String?
   injuries  Int?
+  fatalities Int?
+  phase     String? // TAKEOFF, CRUISE, LANDING, etc.
 
   aircraft Aircraft? @relation(fields: [tail], references: [tail])
+
+  @@index([tail])
+  @@index([date])
+  @@index([severity])
 }
 
 model EventLive {
@@ -76,8 +101,14 @@ model EventLive {
   lon    Float?
   alt    Float?
   src    String?
+  speed  Float?
+  heading Float?
 
   aircraft Aircraft? @relation(fields: [tail], references: [tail])
+
+  @@unique([tail, ts])
+  @@index([tail])
+  @@index([ts])
 }
 
 model Airport {
@@ -88,6 +119,10 @@ model Airport {
   lon       Float?
   elevation Int?
   timezone  String?
+
+  weather   WeatherMetar[]
+
+  @@index([iata])
 }
 
 model WeatherMetar {
@@ -95,7 +130,7 @@ model WeatherMetar {
   icao   String
   ts     DateTime
   raw    String?
-  parsed Json?
+  parsed String? // Store as JSON string for SQLite compatibility
 
   airport Airport? @relation(fields: [icao], references: [icao])
 
