@@ -6,32 +6,3 @@
 
    Linting and checking validity of types ...
  ⨯ ESLint: Failed to load config "next/babel" to extend from. Referenced from: /Users/ignasgru/aerofresh-private-/apps/web/.eslintrc.json
-   Creating an optimized production build ...
- ✓ Compiled successfully in 759ms
-   Collecting page data ...
-   Generating static pages (0/8) ...
-   Generating static pages (2/8) 
-   Generating static pages (4/8) 
-   Generating static pages (6/8) 
- ✓ Generating static pages (8/8)
-   Finalizing page optimization ...
-   Collecting build traces ...
-
-Route (pages)                                Size  First Load JS
-┌ ○ /                                     2.97 kB         104 kB
-├ ○ /404                                    179 B        98.5 kB
-├ ƒ /aircraft/[tail]                      3.33 kB         105 kB
-├ ƒ /aircraft/[tail]/report               4.91 kB         106 kB
-├ ○ /clean-search                         3.04 kB         104 kB
-├ ○ /live-tracking                         2.9 kB         104 kB
-├ ○ /reports                               109 kB         208 kB
-├ ○ /search                               2.25 kB         104 kB
-└ ○ /test-search                           1.3 kB        99.6 kB
-+ First Load JS shared by all             98.3 kB
-  ├ chunks/framework-8c12f6bd465ec923.js  57.7 kB
-  ├ chunks/main-3633def478e8c745.js       39.5 kB
-  └ other shared chunks (total)           1.03 kB
-
-○  (Static)   prerendered as static content
-ƒ  (Dynamic)  server-rendered on demand
-

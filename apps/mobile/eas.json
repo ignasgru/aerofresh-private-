@@ -13,7 +13,7 @@
         "buildType": "apk"
       },
       "env": {
-        "API_BASE_URL": "https://aerofresh-api.your-subdomain.workers.dev"
+        "API_BASE_URL": "https://aerofresh-api-staging.ignasgru.workers.dev"
       }
     },
     "preview": {
@@ -25,7 +25,7 @@
         "buildType": "apk"
       },
       "env": {
-        "API_BASE_URL": "https://aerofresh-api.your-subdomain.workers.dev"
+        "API_BASE_URL": "https://aerofresh-api-staging.ignasgru.workers.dev"
       }
     },
     "production": {
@@ -33,10 +33,10 @@
         "resourceClass": "m-medium"
       },
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       },
       "env": {
-        "API_BASE_URL": "https://api.aerofresh.com"
+        "API_BASE_URL": "https://aerofresh-api-staging.ignasgru.workers.dev"
       }
     }
   },
@@ -51,17 +51,6 @@
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "production"
       }
-    }
-  },
-  "update": {
-    "development": {
-      "channel": "development"
-    },
-    "preview": {
-      "channel": "preview"
-    },
-    "production": {
-      "channel": "production"
     }
   }
 }
