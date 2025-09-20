@@ -6,21 +6,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'aerofresh',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/icon.png',
+  icon: './assets/icon.svg',
   userInterfaceStyle: 'light',
   splash: {
-    image: './assets/splash.png',
+    image: './assets/splash.svg',
     resizeMode: 'contain',
     backgroundColor: '#3B82F6'
   },
   assetBundlePatterns: ['**/*'],
+  plugins: ['expo-font'],
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.aerofresh.app'
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './assets/adaptive-icon.svg',
       backgroundColor: '#3B82F6'
     },
     package: 'com.aerofresh.app'
