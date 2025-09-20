@@ -214,7 +214,7 @@ async function handleHealth(): Promise<Response> {
   return new Response(JSON.stringify({
     ok: true,
     ts: Date.now(),
-            message: 'AeroFresh API is running with comprehensive aircraft data! (v2.1.0)',
+            message: 'AeroFresh API is running with comprehensive aircraft data! (v2.2.0)',
     version: '2.0.0',
     database: 'enhanced_demo',
     environment: 'production',
