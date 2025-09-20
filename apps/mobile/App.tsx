@@ -91,3 +91,5 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+export default App;
