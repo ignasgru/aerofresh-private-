@@ -1,14 +1,32 @@
-import { PrismaClient } from '@prisma/client';
+// Database connection using Neon SQL API (Cloudflare Workers compatible)
+const NEON_API_KEY = process.env.NEON_API_KEY || 'npg_WsRSZFM9y3nU';
+const NEON_PROJECT_ID = 'ep-withered-mode-aeites9e';
 
-// Initialize Prisma Client with connection pooling
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_WsRSZFM9y3nU@ep-withered-mode-aeites9e-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
-    },
-  },
-  log: ['error'],
-});
+// Helper function to execute SQL queries via Neon SQL API
+async function executeQuery(sql: string) {
+  try {
+    const response = await fetch(`https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/sql`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NEON_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: sql
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Database query failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.rows || [];
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+}
 
 // CORS headers for all responses
 const CORS = {
@@ -22,13 +40,13 @@ const CORS = {
 async function handleHealth(): Promise<Response> {
   try {
     // Test database connection
-    await prisma.$queryRaw`SELECT 1`;
+    await executeQuery('SELECT 1 as test');
     
     // Get basic stats
-    const [aircraftCount, adCount, accidentCount] = await Promise.all([
-      prisma.aircraft.count(),
-      prisma.adDirective.count(),
-      prisma.accident.count()
+    const [aircraftResult, adResult, accidentResult] = await Promise.all([
+      executeQuery('SELECT COUNT(*) as count FROM "Aircraft"'),
+      executeQuery('SELECT COUNT(*) as count FROM "AdDirective"'),
+      executeQuery('SELECT COUNT(*) as count FROM "Accident"')
     ]);
     
     return new Response(JSON.stringify({
@@ -39,9 +57,9 @@ async function handleHealth(): Promise<Response> {
       database: 'connected',
       environment: 'production',
       stats: {
-        aircraft: aircraftCount,
-        adDirectives: adCount,
-        accidents: accidentCount
+        aircraft: aircraftResult[0]?.count || 0,
+        adDirectives: adResult[0]?.count || 0,
+        accidents: accidentResult[0]?.count || 0
       }
     }), {
       status: 200,
@@ -84,17 +102,15 @@ async function handleSearch(request: Request): Promise<Response> {
     }
 
     // Search real database for aircraft
-    const aircraft = await prisma.aircraft.findMany({
-      where: {
-        OR: [
-          { tail: { contains: query.toUpperCase() } },
-          { make: { contains: query } },
-          { model: { contains: query } }
-        ]
-      },
-      take: 10,
-      orderBy: { tail: 'asc' }
-    });
+    const sql = `
+      SELECT tail, make, model, year, serial, "typeCode", engine, seats
+      FROM "Aircraft"
+      WHERE tail ILIKE $1 OR make ILIKE $1 OR model ILIKE $1
+      ORDER BY tail ASC
+      LIMIT 10
+    `;
+    
+    const aircraft = await executeQuery(sql.replace('$1', `'%${query}%'`));
 
     if (aircraft.length > 0) {
       const results = aircraft.map(a => ({
@@ -164,52 +180,57 @@ async function handleAircraftSummary(request: Request): Promise<Response> {
     }
 
     // Get real aircraft data from database
-    const aircraft = await prisma.aircraft.findUnique({
-      where: { tail: tail.toUpperCase() },
-      include: {
-        owners: {
-          include: {
-            owner: true
-          }
-        },
-        accidents: true
-      }
-    });
+    const aircraftSql = `SELECT * FROM "Aircraft" WHERE tail = '${tail.toUpperCase()}'`;
+    const aircraft = await executeQuery(aircraftSql);
 
-    if (aircraft) {
+    if (aircraft.length > 0) {
+      const plane = aircraft[0];
+      
+      // Get owners
+      const ownersSql = `
+        SELECT o.name, o.type, o.state, o.country, ao."startDate", ao."endDate"
+        FROM "AircraftOwner" ao
+        JOIN "Owner" o ON ao."ownerId" = o.id
+        WHERE ao.tail = '${tail.toUpperCase()}'
+      `;
+      const owners = await executeQuery(ownersSql);
+
+      // Get accidents
+      const accidentsSql = `SELECT * FROM "Accident" WHERE tail = '${tail.toUpperCase()}'`;
+      const accidents = await executeQuery(accidentsSql);
+
       // Get AD directives for this aircraft type
-      const adDirectives = await prisma.adDirective.findMany({
-        where: {
-          makeModelKey: `${aircraft.make}-${aircraft.model}`,
-          status: 'OPEN'
-        }
-      });
+      const adSql = `
+        SELECT * FROM "AdDirective" 
+        WHERE "makeModelKey" = '${plane.make}-${plane.model}' AND status = 'OPEN'
+      `;
+      const adDirectives = await executeQuery(adSql);
 
       // Calculate risk score based on real data
       const riskScore = Math.min(100, Math.max(0, 
         (adDirectives.length * 5) + 
-        (aircraft.accidents.length * 20) + 
-        (aircraft.owners.length * 2)
+        (accidents.length * 20) + 
+        (owners.length * 2)
       ));
 
       const summary = {
-        tail: aircraft.tail,
-        make: aircraft.make,
-        model: aircraft.model,
-        year: aircraft.year,
-        serial: aircraft.serial,
-        typeCode: aircraft.typeCode,
-        engine: aircraft.engine,
-        seats: aircraft.seats,
+        tail: plane.tail,
+        make: plane.make,
+        model: plane.model,
+        year: plane.year,
+        serial: plane.serial,
+        typeCode: plane.typeCode,
+        engine: plane.engine,
+        seats: plane.seats,
         riskScore,
         status: 'active',
-        owners: aircraft.owners.map(o => ({
-          name: o.owner.name,
-          type: o.owner.type,
+        owners: owners.map(o => ({
+          name: o.name,
+          type: o.type,
           startDate: o.startDate,
           endDate: o.endDate
         })),
-        accidents: aircraft.accidents.map(a => ({
+        accidents: accidents.map(a => ({
           date: a.date,
           severity: a.severity,
           phase: a.phase,
@@ -266,17 +287,16 @@ async function handleLiveTracking(request: Request): Promise<Response> {
     const minutes = parseInt(url.searchParams.get('minutes') || '30');
 
     // Get real live tracking data from database
-    const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
-    const livePositions = await prisma.eventLive.findMany({
-      where: {
-        ts: { gte: cutoffTime }
-      },
-      include: {
-        aircraft: true
-      },
-      orderBy: { ts: 'desc' },
-      take: limit
-    });
+    const cutoffTime = new Date(Date.now() - minutes * 60 * 1000).toISOString();
+    const liveSql = `
+      SELECT el.*, a.make, a.model, a.year
+      FROM "EventLive" el
+      LEFT JOIN "Aircraft" a ON el.tail = a.tail
+      WHERE el.ts >= '${cutoffTime}'
+      ORDER BY el.ts DESC
+      LIMIT ${limit}
+    `;
+    const livePositions = await executeQuery(liveSql);
 
       if (livePositions.length > 0) {
         const positions = livePositions.map((pos: any, i: number) => ({
