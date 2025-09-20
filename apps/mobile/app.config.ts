@@ -29,8 +29,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: './assets/favicon.svg'
   },
             extra: {
-              // API Configuration - Single source of truth
-              API_BASE_URL: (typeof process !== 'undefined' && process.env?.API_BASE_URL) || 'https://aerofresh-api.your-subdomain.workers.dev',
+                      // API Configuration - Single source of truth
+                      API_BASE_URL: (typeof process !== 'undefined' && process.env?.API_BASE_URL) || 'https://aerofresh-api-staging.ignasgru.workers.dev',
               API_TIMEOUT: (typeof process !== 'undefined' && process.env?.API_TIMEOUT) || '5000',
               API_RETRY_COUNT: (typeof process !== 'undefined' && process.env?.API_RETRY_COUNT) || '3',
               
@@ -41,7 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
               // Development flags
               DEBUG_MODE: (typeof process !== 'undefined' && process.env?.NODE_ENV) === 'development',
               
-              // Production API URL (for deployment)
-              PROD_API_URL: 'https://aerofresh-api.your-subdomain.workers.dev',
+                      // Production API URL (for deployment)
+                      PROD_API_URL: 'https://aerofresh-api-staging.ignasgru.workers.dev',
             }
 });

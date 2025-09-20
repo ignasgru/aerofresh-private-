@@ -1,14 +1,1 @@
-{
-  "/clean-search": "pages/clean-search.html",
-  "/": "pages/index.html",
-  "/live-tracking": "pages/live-tracking.html",
-  "/reports": "pages/reports.html",
-  "/search": "pages/search.html",
-  "/test-search": "pages/test-search.html",
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/aircraft/[tail]": "pages/aircraft/[tail].js",
-  "/aircraft/[tail]/report": "pages/aircraft/[tail]/report.js",
-  "/_document": "pages/_document.js",
-  "/404": "pages/404.html"
-}
+{}

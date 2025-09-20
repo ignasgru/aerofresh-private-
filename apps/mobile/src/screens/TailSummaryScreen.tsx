@@ -7,11 +7,16 @@ import {
   TouchableOpacity,
   Alert 
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../App';
+
+type TailSummaryScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'TailSummary'>;
+type TailSummaryScreenRouteProp = RouteProp<RootStackParamList, 'TailSummary'>;
 
 interface Props {
-  route: any;
-  navigation: any;
+  route: TailSummaryScreenRouteProp;
+  navigation: TailSummaryScreenNavigationProp;
 }
 
 export default function TailSummaryScreen({ route, navigation }: Props) {
@@ -26,7 +31,7 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
   const riskInfo = getRiskColor(summary.riskScore);
 
   const viewHistory = () => {
-    navigation.navigate('AircraftHistory', { tail });
+    Alert.alert('Coming Soon', 'Detailed aircraft history view coming soon!');
   };
 
   const getRiskLabel = (score: number) => {
@@ -40,7 +45,7 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.aircraftInfo}>
-          <Ionicons name="airplane" size={32} color="#3B82F6" />
+          <Text style={{ fontSize: 32, color: '#3B82F6' }}>✈️</Text>
           <View style={styles.aircraftDetails}>
             <Text style={styles.tailNumber}>{tail}</Text>
             <Text style={styles.aircraftType}>Aircraft Report</Text>
@@ -56,19 +61,19 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
       {/* Key Metrics */}
       <View style={styles.metricsContainer}>
         <View style={styles.metricCard}>
-          <Ionicons name="document-text" size={24} color="#3B82F6" />
+          <Text style={{ fontSize: 24, color: '#3B82F6' }}>📄</Text>
           <Text style={styles.metricValue}>{summary.regStatus}</Text>
           <Text style={styles.metricLabel}>Registration</Text>
         </View>
         
         <View style={styles.metricCard}>
-          <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+          <Text style={{ fontSize: 24, color: '#10B981' }}>✅</Text>
           <Text style={styles.metricValue}>{summary.airworthiness}</Text>
           <Text style={styles.metricLabel}>Airworthiness</Text>
         </View>
         
         <View style={styles.metricCard}>
-          <Ionicons name="warning" size={24} color="#F59E0B" />
+          <Text style={{ fontSize: 24, color: '#F59E0B' }}>⚠️</Text>
           <Text style={styles.metricValue}>{summary.adOpenCount}</Text>
           <Text style={styles.metricLabel}>Open ADs</Text>
         </View>
@@ -79,19 +84,19 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
         <Text style={styles.sectionTitle}>Safety Information</Text>
         <View style={styles.safetyGrid}>
           <View style={styles.safetyCard}>
-            <Ionicons name="alert-circle" size={20} color="#DC2626" />
+            <Text style={{ fontSize: 20, color: '#DC2626' }}>🚨</Text>
             <Text style={styles.safetyValue}>{summary.ntsbAccidents}</Text>
             <Text style={styles.safetyLabel}>Accidents</Text>
           </View>
           
           <View style={styles.safetyCard}>
-            <Ionicons name="people" size={20} color="#3B82F6" />
+            <Text style={{ fontSize: 20, color: '#3B82F6' }}>👥</Text>
             <Text style={styles.safetyValue}>{summary.owners}</Text>
             <Text style={styles.safetyLabel}>Owners</Text>
           </View>
           
           <View style={styles.safetyCard}>
-            <Ionicons name="trending-up" size={20} color={riskInfo.color} />
+            <Text style={{ fontSize: 20, color: riskInfo.color }}>📈</Text>
             <Text style={[styles.safetyValue, { color: riskInfo.color }]}>
               {summary.riskScore}
             </Text>
@@ -105,11 +110,9 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
         <Text style={styles.sectionTitle}>Risk Assessment</Text>
         <View style={[styles.riskCard, { backgroundColor: riskInfo.bg }]}>
           <View style={styles.riskHeader}>
-            <Ionicons 
-              name={summary.riskScore >= 50 ? "warning" : summary.riskScore >= 25 ? "information-circle" : "checkmark-circle"} 
-              size={24} 
-              color={riskInfo.color} 
-            />
+            <Text style={{ fontSize: 24, color: riskInfo.color }}>
+              {summary.riskScore >= 50 ? "⚠️" : summary.riskScore >= 25 ? "ℹ️" : "✅"}
+            </Text>
             <Text style={[styles.riskTitle, { color: riskInfo.color }]}>
               {getRiskLabel(summary.riskScore)}
             </Text>
@@ -128,12 +131,12 @@ export default function TailSummaryScreen({ route, navigation }: Props) {
       {/* Action Buttons */}
       <View style={styles.actionsContainer}>
         <TouchableOpacity style={styles.primaryButton} onPress={viewHistory}>
-          <Ionicons name="time" size={20} color="#fff" />
+          <Text style={{ fontSize: 20, color: '#fff' }}>🕐</Text>
           <Text style={styles.primaryButtonText}>View Full History</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.secondaryButton}>
-          <Ionicons name="share" size={20} color="#3B82F6" />
+          <Text style={{ fontSize: 20, color: '#3B82F6' }}>📤</Text>
           <Text style={styles.secondaryButtonText}>Share Report</Text>
         </TouchableOpacity>
       </View>

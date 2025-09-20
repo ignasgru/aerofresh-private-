@@ -27,8 +27,23 @@ on:
 
 env:
   # Environment variables for secrets (reduces validation warnings)
-  # NOTE: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
+  # ⚠️  IMPORTANT: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
   # These warnings disappear once secrets are configured in repository settings
+  # 
+  # Current Status:
+  # ✅ CF_API_TOKEN: Configured (i67hWe_PyXaCSPQlB7Fj4eA2ZeOZT3uWZGXJdeB7)
+  # ✅ CF_ACCOUNT_ID: Configured (0798c16c11ee253b4998f3367d5f134b)
+  # ⏳ DATABASE_URL: Still needed (from Neon database)
+  # ⏳ FAA_API_KEY: Optional - FAA data source
+  # ⏳ NTSB_API_KEY: Optional - Accident/incident data
+  # ⏳ AVWX_TOKEN: Optional - Aviation weather data
+  # ⏳ OPENSKY_USERNAME: Optional - Live flight tracking
+  # ⏳ OPENSKY_PASSWORD: Optional - Live flight tracking
+  # 
+  # ETL Workers handle:
+  # • Automated data ingestion from FAA, NTSB, weather APIs
+  # • Scheduled data processing and updates
+  # • Real-time flight tracking data collection
   CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
   CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -62,21 +77,39 @@ jobs:
         
       - name: Validate required secrets
         run: |
-          # Note: GitHub Actions editor shows warnings for unset secrets - this is expected
-          # These warnings disappear once secrets are configured in repository settings
+          echo "🔍 Checking GitHub repository secrets for ETL deployment..."
+          echo "⚠️  Note: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED"
+          echo "These warnings disappear once secrets are configured in repository settings"
+          echo ""
+          
           if [ -z "$CF_API_TOKEN" ]; then
             echo "❌ CF_API_TOKEN secret is required but not set"
+            echo "💡 Add this secret to your GitHub repository settings"
             exit 1
           fi
+          
           if [ -z "$CF_ACCOUNT_ID" ]; then
             echo "❌ CF_ACCOUNT_ID secret is required but not set"
+            echo "💡 Add this secret to your GitHub repository settings"
             exit 1
           fi
+          
           if [ -z "$DATABASE_URL" ]; then
             echo "❌ DATABASE_URL secret is required but not set"
+            echo "💡 Create Neon database and add connection string to GitHub repository settings"
             exit 1
           fi
+          
           echo "✅ Required secrets validated"
+          echo "📊 ETL Secrets Status:"
+          echo "  • CF_API_TOKEN: ✅ Set"
+          echo "  • CF_ACCOUNT_ID: ✅ Set"
+          echo "  • DATABASE_URL: ✅ Set"
+          echo "  • FAA_API_KEY: ${FAA_API_KEY:+✅ Set}${FAA_API_KEY:-⏳ Optional}"
+          echo "  • NTSB_API_KEY: ${NTSB_API_KEY:+✅ Set}${NTSB_API_KEY:-⏳ Optional}"
+          echo "  • AVWX_TOKEN: ${AVWX_TOKEN:+✅ Set}${AVWX_TOKEN:-⏳ Optional}"
+          echo "  • OPENSKY_USERNAME: ${OPENSKY_USERNAME:+✅ Set}${OPENSKY_USERNAME:-⏳ Optional}"
+          echo "  • OPENSKY_PASSWORD: ${OPENSKY_PASSWORD:+✅ Set}${OPENSKY_PASSWORD:-⏳ Optional}"
         
       - name: Deploy ETL Loader
         run: npx wrangler deploy --config apps/etl/wrangler.toml --env staging

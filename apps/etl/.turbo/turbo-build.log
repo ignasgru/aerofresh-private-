@@ -1,0 +1,5 @@
+
+> @aerofresh/etl@ build /Users/ignasgru/aerofresh-private-/apps/etl
+> echo 'Build complete - TypeScript compilation handled by Wrangler'
+
+Build complete - TypeScript compilation handled by Wrangler

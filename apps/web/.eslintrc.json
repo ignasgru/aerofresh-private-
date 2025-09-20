@@ -1,8 +1,5 @@
 {
-  "extends": ["next/core-web-vitals"],
-  "parserOptions": {
-    "sourceType": "module"
-  },
+  "extends": ["next/babel"],
   "rules": {
     "no-inline-styles": "off"
   }

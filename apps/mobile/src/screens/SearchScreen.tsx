@@ -9,10 +9,22 @@ import {
   ScrollView,
   ActivityIndicator 
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
+import { api } from '../lib/network';
+
+// Simple icon components
+const SearchIcon = ({ size = 24, color = '#2563EB' }: { size?: number; color?: string }) => (
+  <Text style={{ fontSize: size, color }}>🔍</Text>
+);
+const PlaneIcon = ({ size = 24, color = '#2563EB' }: { size?: number; color?: string }) => (
+  <Text style={{ fontSize: size, color }}>✈️</Text>
+);
+
+type SearchScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
 
 interface Props {
-  navigation: any;
+  navigation: SearchScreenNavigationProp;
 }
 
 export default function SearchScreen({ navigation }: Props) {
@@ -27,16 +39,23 @@ export default function SearchScreen({ navigation }: Props) {
     
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/aircraft/${tail.toUpperCase()}/summary`);
-      if (!response.ok) {
+      const { data, isDemo } = await api.aircraftSummary(tail.toUpperCase());
+      
+      if (data) {
+        navigation.navigate('TailSummary', { 
+          summary: data, 
+          tail: tail.toUpperCase() 
+        });
+        
+        if (isDemo) {
+          Alert.alert('Demo Mode', `Showing demo data for ${tail.toUpperCase()}\n\nUsing offline demo data due to network connectivity.`);
+        }
+      } else {
         Alert.alert('Not Found', 'Aircraft not found in our database');
-        return;
       }
-      const data = await response.json();
-      navigation.navigate('TailSummary', { summary: data.summary, tail: data.tail });
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Failed to fetch aircraft data. Please check your connection.');
+      Alert.alert('Error', 'Failed to fetch aircraft data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +75,7 @@ export default function SearchScreen({ navigation }: Props) {
 
       <View style={styles.searchContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name="airplane" size={20} color="#6B7280" style={styles.inputIcon} />
+          <PlaneIcon size={20} color="#6B7280" />
           <TextInput
             style={styles.input}
             placeholder="Enter tail number (e.g., N123AB)"
@@ -78,7 +97,7 @@ export default function SearchScreen({ navigation }: Props) {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Ionicons name="search" size={20} color="#fff" />
+              <SearchIcon size={20} color="white" />
               <Text style={styles.searchButtonText}>Search</Text>
             </>
           )}
@@ -104,19 +123,19 @@ export default function SearchScreen({ navigation }: Props) {
         <Text style={styles.sectionTitle}>What you can find:</Text>
         <View style={styles.featureList}>
           <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+            <Text style={{ fontSize: 20, color: '#10B981' }}>✅</Text>
             <Text style={styles.featureText}>Registration status and airworthiness</Text>
           </View>
           <View style={styles.featureItem}>
-            <Ionicons name="warning" size={20} color="#F59E0B" />
+            <Text style={{ fontSize: 20, color: '#F59E0B' }}>⚠️</Text>
             <Text style={styles.featureText}>Accident and incident history</Text>
           </View>
           <View style={styles.featureItem}>
-            <Ionicons name="people" size={20} color="#3B82F6" />
+            <Text style={{ fontSize: 20, color: '#3B82F6' }}>👥</Text>
             <Text style={styles.featureText}>Ownership history</Text>
           </View>
           <View style={styles.featureItem}>
-            <Ionicons name="document-text" size={20} color="#8B5CF6" />
+            <Text style={{ fontSize: 20, color: '#8B5CF6' }}>📄</Text>
             <Text style={styles.featureText}>Airworthiness directives</Text>
           </View>
         </View>

@@ -12,7 +12,7 @@ const getConfigValue = (key: string, defaultValue: string): string => {
   }
 };
 
-const API_BASE_URL = getConfigValue('API_BASE_URL', 'http://192.168.3.1:3001');
+const API_BASE_URL = getConfigValue('API_BASE_URL', 'https://aerofresh-api-staging.ignasgru.workers.dev');
 const API_TIMEOUT = parseInt(getConfigValue('API_TIMEOUT', '10000'));
 const API_RETRY_COUNT = parseInt(getConfigValue('API_RETRY_COUNT', '3'));
 
@@ -115,12 +115,46 @@ export async function checkHealth(): Promise<NetworkState> {
         networkState = 'online';
         console.log('✅ API Health check passed:', data);
       } else {
-        networkState = 'offline';
-        console.log('❌ API Health check failed - server not OK');
+        // Even if health check fails, try a simple search to see if API is working
+        console.log('⚠️ Health check failed, testing search endpoint...');
+        try {
+          const searchResponse = await fetch(`${API_BASE_URL}/api/search?q=test`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+          });
+          if (searchResponse.ok) {
+            networkState = 'online';
+            console.log('✅ API is working via search endpoint');
+          } else {
+            networkState = 'offline';
+            console.log('❌ API Health check failed - server not OK');
+          }
+        } catch {
+          networkState = 'offline';
+          console.log('❌ API Health check failed - server not OK');
+        }
       }
     } else {
-      networkState = 'offline';
-      console.log('❌ API Health check failed - HTTP error:', response.status);
+      // Even if health check fails, try a simple search to see if API is working
+      console.log('⚠️ Health check HTTP error, testing search endpoint...');
+      try {
+        const searchResponse = await fetch(`${API_BASE_URL}/api/search?q=test`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+        });
+        if (searchResponse.ok) {
+          networkState = 'online';
+          console.log('✅ API is working via search endpoint');
+        } else {
+          networkState = 'offline';
+          console.log('❌ API Health check failed - HTTP error:', response.status);
+        }
+      } catch {
+        networkState = 'offline';
+        console.log('❌ API Health check failed - HTTP error:', response.status);
+      }
     }
   } catch (error) {
     networkState = 'offline';
