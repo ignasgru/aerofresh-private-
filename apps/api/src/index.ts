@@ -325,7 +325,7 @@ async function handleAircraftSummary(request: Request): Promise<Response> {
     }
 
     // Get aircraft data from enhanced database
-    const aircraft = AIRCRAFT_DATABASE[tail.toUpperCase()];
+    const aircraft = AIRCRAFT_DATABASE[tail.toUpperCase() as keyof typeof AIRCRAFT_DATABASE];
     
     if (aircraft) {
       return new Response(JSON.stringify({
@@ -373,7 +373,7 @@ async function handleLiveTracking(request: Request): Promise<Response> {
     // Get live tracking data from enhanced database
     const livePositions = LIVE_POSITIONS.slice(0, limit);
 
-      if (livePositions.length > 0) {
+    if (livePositions.length > 0) {
         const positions = livePositions.map((pos: any, i: number) => ({
           id: i + 1,
           tail: pos.tail,
@@ -398,11 +398,8 @@ async function handleLiveTracking(request: Request): Promise<Response> {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...CORS },
         });
-      }
-    } catch (dbError) {
-      console.log('Database live tracking failed, using fallback:', dbError);
     }
-
+    
     // Fallback to mock data
     const mockLiveData = {
       positions: Array.from({ length: limit }, (_, i) => ({
