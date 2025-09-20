@@ -42,7 +42,7 @@ env:
   OPENSKY_USERNAME: ${{ secrets.OPENSKY_USERNAME || '' }} # Live flight tracking
   OPENSKY_PASSWORD: ${{ secrets.OPENSKY_PASSWORD || '' }} # Live flight tracking
   SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}           # Error monitoring
-  POSTHOG_KEY: ${{ secrets.POSTHOG_KEY || '' }}         # Analytics
+  POSTHOG_KEY: ${{ secrets.POSTHOG_KEY || '' }}  # Optional: Analytics integration
 
 jobs:
   deploy:
