@@ -1,7 +1,7 @@
 {
   "name": "@aerofresh/mobile",
   "private": true,
-  "main": "App.tsx",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
