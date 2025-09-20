@@ -75,8 +75,8 @@ async function handleSearch(request: Request): Promise<Response> {
         where: {
           OR: [
             { tail: { contains: query.toUpperCase() } },
-            { make: { contains: query, mode: 'insensitive' } },
-            { model: { contains: query, mode: 'insensitive' } }
+            { make: { contains: query } },
+            { model: { contains: query } }
           ]
         },
         take: 10
@@ -158,7 +158,7 @@ async function handleAircraftSummary(request: Request): Promise<Response> {
       if (aircraft) {
         // Get related data
         const [adDirectives, accidents, owners] = await Promise.all([
-          prisma.adDirective.count({ where: { tail: tail.toUpperCase(), status: 'OPEN' } }),
+          prisma.adDirective.count({ where: { status: 'OPEN' } }),
           prisma.accident.count({ where: { tail: tail.toUpperCase() } }),
           prisma.aircraftOwner.count({ where: { tail: tail.toUpperCase() } })
         ]);

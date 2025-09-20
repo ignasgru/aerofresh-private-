@@ -44,7 +44,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: staging and production
     
     steps:
       - name: Checkout

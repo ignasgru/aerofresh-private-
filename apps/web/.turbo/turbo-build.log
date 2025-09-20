@@ -6,3 +6,20 @@
 
    Linting and checking validity of types ...
  ⨯ ESLint: Failed to load config "next/babel" to extend from. Referenced from: /Users/ignasgru/aerofresh-private-/apps/web/.eslintrc.json
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1376ms
+   Collecting page data ...
+   Generating static pages (0/8) ...
+   Generating static pages (2/8) 
+   Generating static pages (4/8) 
+   Generating static pages (6/8) 
+ ✓ Generating static pages (8/8)
+   Finalizing page optimization ...
+   Collecting build traces ...
+[Error: ENOENT: no such file or directory, open '/Users/ignasgru/aerofresh-private-/apps/web/.next/server/pages/index.js.nft.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/ignasgru/aerofresh-private-/apps/web/.next/server/pages/index.js.nft.json'
+}
+ ELIFECYCLE  Command failed with exit code 1.
