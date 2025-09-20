@@ -324,19 +324,53 @@ async function handleLiveTracking(request: Request): Promise<Response> {
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const minutes = parseInt(url.searchParams.get('minutes') || '30');
 
-    // Try to get real live data from database
-    try {
-      const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
-      const livePositions = await prisma.eventLive.findMany({
-        where: {
-          ts: { gte: cutoffTime }
-        },
-        include: {
-          aircraft: true
-        },
-        orderBy: { ts: 'desc' },
-        take: limit
-      });
+    // Enhanced demo data for live tracking
+    const DEMO_LIVE_POSITIONS = [
+      {
+        tail: 'N737AB',
+        lat: 40.7128,
+        lon: -74.0060,
+        alt: 35000,
+        speed: 450,
+        heading: 270,
+        ts: new Date(Date.now() - 5 * 60 * 1000),
+        aircraft: {
+          make: 'Boeing',
+          model: '737-800',
+          year: 2018
+        }
+      },
+      {
+        tail: 'N320CD',
+        lat: 41.8781,
+        lon: -87.6298,
+        alt: 28000,
+        speed: 380,
+        heading: 180,
+        ts: new Date(Date.now() - 8 * 60 * 1000),
+        aircraft: {
+          make: 'Airbus',
+          model: 'A320',
+          year: 2019
+        }
+      },
+      {
+        tail: 'N172EF',
+        lat: 33.9425,
+        lon: -118.4081,
+        alt: 3500,
+        speed: 120,
+        heading: 90,
+        ts: new Date(Date.now() - 2 * 60 * 1000),
+        aircraft: {
+          make: 'Cessna',
+          model: '172',
+          year: 2020
+        }
+      }
+    ];
+
+    const livePositions = DEMO_LIVE_POSITIONS.slice(0, limit);
 
       if (livePositions.length > 0) {
         const positions = livePositions.map((pos: any, i: number) => ({
@@ -358,7 +392,7 @@ async function handleLiveTracking(request: Request): Promise<Response> {
           positions,
           count: positions.length,
           timeRange: `${minutes} minutes`,
-          source: 'database'
+          source: 'enhanced_demo'
         }), {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...CORS },
