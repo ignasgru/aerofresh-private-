@@ -258,7 +258,7 @@ async function fetchLiveADS_B(env: any): Promise<void> {
     const response = await fetch('https://opensky-network.org/api/states/all');
     
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json() as { states?: any[]; time?: number };
       console.log(`✅ ADS-B data fetched: ${data.states?.length || 0} aircraft`);
       
       // Store raw data in R2 for audit

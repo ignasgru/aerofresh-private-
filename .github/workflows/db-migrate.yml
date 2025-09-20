@@ -1,23 +1,31 @@
-# Run Database Migrations with Prisma
-# 
-# Required GitHub Secrets:
-# - DATABASE_URL: PostgreSQL connection string with PostGIS
-#
-# To set secrets: Repository Settings → Secrets and variables → Actions
-
-name: DB Migrate
+name: Database Migration (Prisma)
 
 on:
   push:
     branches: [ main ]
     paths:
       - "packages/db/**"
-      - "apps/api/**"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
+
+env:
+  # Environment variables for secrets (reduces validation warnings)
+  # ⚠️  IMPORTANT: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
+  # These warnings disappear once secrets are configured in repository settings
+  # 
+  # Current Status:
+  # ⏳ DATABASE_URL: Still needed (from Neon database)
+  # 
+  # Required for database migrations:
+  # 1. Create Neon database at https://neon.tech
+  # 2. Get connection string from database dashboard
+  # 3. Add DATABASE_URL secret to GitHub repository settings
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    environment: staging and production
     
     steps:
       - name: Checkout
@@ -32,30 +40,45 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: 'pnpm'
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
       - name: Validate required secrets
         run: |
-          # NOTE: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED
-          # These warnings disappear once DATABASE_URL is configured in repository settings
-          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+          echo "🔍 Checking GitHub repository secrets for database migration..."
+          echo "⚠️  Note: GitHub Actions editor shows warnings for unset secrets - this is EXPECTED"
+          echo "These warnings disappear once secrets are configured in repository settings"
+          echo ""
+          
+          if [ -z "$DATABASE_URL" ]; then
             echo "❌ DATABASE_URL secret is required but not set"
+            echo "💡 Create Neon database and add connection string to GitHub repository settings"
+            echo "📊 Steps:"
+            echo "  1. Go to https://neon.tech and create account"
+            echo "  2. Create new database project"
+            echo "  3. Copy connection string from dashboard"
+            echo "  4. Add DATABASE_URL secret to GitHub repository settings"
             exit 1
           fi
-          echo "✅ Required secrets validated"
-        
-      - name: Run Prisma migrations
-        run: pnpm -C packages/db prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           
-      - name: Update migration status
+          echo "✅ Required secrets validated"
+          echo "📊 Database Secrets Status:"
+          echo "  • DATABASE_URL: ✅ Set"
+        
+      - name: Generate Prisma Client
+        run: pnpm exec prisma generate
+        working-directory: packages/db
+        
+      - name: Run Database Migrations
+        run: pnpm exec prisma migrate deploy
+        working-directory: packages/db
+        
+      - name: Update deployment status
         if: success()
         run: echo "✅ Database migrations completed successfully"
         
-      - name: Update migration status
+      - name: Update deployment status
         if: failure()
         run: echo "❌ Database migration failed"
