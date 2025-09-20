@@ -1,7 +1,6 @@
 {
   "name": "aerofresh",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev:api": "wrangler dev --config apps/api/wrangler.toml",
     "dev:web": "pnpm -C apps/web dev",
