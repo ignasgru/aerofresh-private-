@@ -12,7 +12,7 @@ const CORS = {
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: 'file:./dev.db', // Use local SQLite for development
+      url: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_WsRSZFM9y3nU@ep-withered-mode-aeites9e-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
     },
   },
 });
