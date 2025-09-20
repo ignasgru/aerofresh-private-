@@ -5,6 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'AeroFresh',
   slug: 'aerofresh',
   version: '1.0.0',
+  main: 'App.tsx',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
