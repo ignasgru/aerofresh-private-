@@ -1,5 +1,14 @@
-// Note: Using REST API approach for Cloudflare Workers compatibility
-// Prisma Client doesn't work directly in Cloudflare Workers edge runtime
+import { PrismaClient } from '@prisma/client';
+
+// Initialize Prisma Client with connection pooling
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_WsRSZFM9y3nU@ep-withered-mode-aeites9e-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+    },
+  },
+  log: ['error'],
+});
 
 // CORS headers for all responses
 const CORS = {
@@ -11,21 +20,52 @@ const CORS = {
 
 // Health check endpoint
 async function handleHealth(): Promise<Response> {
-  return new Response(JSON.stringify({
-    ok: true,
-    ts: Date.now(),
-    message: 'AeroFresh API is running with enhanced demo data!',
-    version: '2.0.0',
-    database: 'demo_mode',
-    environment: 'production',
-    note: 'Using realistic demo data - database integration in progress'
-  }), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      ...CORS,
-    },
-  });
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Get basic stats
+    const [aircraftCount, adCount, accidentCount] = await Promise.all([
+      prisma.aircraft.count(),
+      prisma.adDirective.count(),
+      prisma.accident.count()
+    ]);
+    
+    return new Response(JSON.stringify({
+      ok: true,
+      ts: Date.now(),
+      message: 'AeroFresh API is running with REAL aircraft data!',
+      version: '2.0.0',
+      database: 'connected',
+      environment: 'production',
+      stats: {
+        aircraft: aircraftCount,
+        adDirectives: adCount,
+        accidents: accidentCount
+      }
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...CORS,
+      },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      ok: false,
+      ts: Date.now(),
+      message: 'Database connection failed',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      version: '2.0.0',
+      database: 'disconnected'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...CORS,
+      },
+    });
+  }
 }
 
 // Aircraft search endpoint
@@ -43,102 +83,36 @@ async function handleSearch(request: Request): Promise<Response> {
       });
     }
 
-    // Enhanced demo data with realistic aircraft information
-    const DEMO_AIRCRAFT_DATABASE = [
-      {
-        tail: 'N737AB',
-        make: 'Boeing',
-        model: '737-800',
-        year: 2018,
-        serial: 'LN-12345',
-        typeCode: 'B738',
-        engine: 'CFM56-7B26',
-        seats: 189,
-        riskScore: 25,
-        status: 'active',
-        owners: [
-          {
-            name: 'Southwest Airlines',
-            type: 'Airline',
-            startDate: '2018-03-15',
-            endDate: null
-          }
-        ],
-        accidents: [],
-        adDirectives: [
-          {
-            ref: 'AD-2023-001',
-            summary: 'Inspection of engine mount bolts',
-            status: 'OPEN',
-            severity: 'MEDIUM'
-          }
+    // Search real database for aircraft
+    const aircraft = await prisma.aircraft.findMany({
+      where: {
+        OR: [
+          { tail: { contains: query.toUpperCase() } },
+          { make: { contains: query } },
+          { model: { contains: query } }
         ]
       },
-      {
-        tail: 'N320CD',
-        make: 'Airbus',
-        model: 'A320',
-        year: 2019,
-        serial: 'MSN-4567',
-        typeCode: 'A320',
-        engine: 'CFM56-5B4',
-        seats: 180,
-        riskScore: 18,
-        status: 'active',
-        owners: [
-          {
-            name: 'American Airlines',
-            type: 'Airline',
-            startDate: '2019-06-20',
-            endDate: null
-          }
-        ],
-        accidents: [],
-        adDirectives: []
-      },
-      {
-        tail: 'N172EF',
-        make: 'Cessna',
-        model: '172',
-        year: 2020,
-        serial: '172-12345',
-        typeCode: 'C172',
-        engine: 'Lycoming O-320-D2J',
-        seats: 4,
-        riskScore: 8,
-        status: 'active',
-        owners: [
-          {
-            name: 'Flight Training Academy',
-            type: 'Flight School',
-            startDate: '2020-01-10',
-            endDate: null
-          }
-        ],
-        accidents: [],
-        adDirectives: []
-      }
-    ];
+      take: 10,
+      orderBy: { tail: 'asc' }
+    });
 
-    // Search through demo database
-    const results = DEMO_AIRCRAFT_DATABASE.filter(aircraft => 
-      aircraft.tail.toLowerCase().includes(query.toLowerCase()) ||
-      aircraft.make.toLowerCase().includes(query.toLowerCase()) ||
-      aircraft.model.toLowerCase().includes(query.toLowerCase())
-    );
+    if (aircraft.length > 0) {
+      const results = aircraft.map(a => ({
+        tail: a.tail,
+        make: a.make,
+        model: a.model,
+        year: a.year,
+        serial: a.serial,
+        typeCode: a.typeCode,
+        engine: a.engine,
+        seats: a.seats
+      }));
 
-    if (results.length > 0) {
       return new Response(JSON.stringify({
-        results: results.map(a => ({
-          tail: a.tail,
-          make: a.make,
-          model: a.model,
-          year: a.year,
-          riskScore: a.riskScore
-        })),
+        results,
         count: results.length,
         query: query.toUpperCase(),
-        source: 'enhanced_demo'
+        source: 'database'
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...CORS },
@@ -189,103 +163,70 @@ async function handleAircraftSummary(request: Request): Promise<Response> {
       });
     }
 
-    // Enhanced demo data for aircraft summary
-    const DEMO_AIRCRAFT_SUMMARY = {
-      'N737AB': {
-        tail: 'N737AB',
-        make: 'Boeing',
-        model: '737-800',
-        year: 2018,
-        serial: 'LN-12345',
-        typeCode: 'B738',
-        engine: 'CFM56-7B26',
-        seats: 189,
-        riskScore: 25,
-        status: 'active',
-        owners: [
-          {
-            name: 'Southwest Airlines',
-            type: 'Airline',
-            startDate: '2018-03-15',
-            endDate: null
+    // Get real aircraft data from database
+    const aircraft = await prisma.aircraft.findUnique({
+      where: { tail: tail.toUpperCase() },
+      include: {
+        owners: {
+          include: {
+            owner: true
           }
-        ],
-        accidents: [],
-        adDirectives: [
-          {
-            ref: 'AD-2023-001',
-            summary: 'Inspection of engine mount bolts',
-            status: 'OPEN',
-            severity: 'MEDIUM',
-            effectiveDate: '2023-01-15'
-          }
-        ],
-        flightHours: 15420,
-        cycles: 8945,
-        lastInspection: '2024-08-15',
-        nextInspection: '2025-02-15',
-        source: 'enhanced_demo'
-      },
-      'N320CD': {
-        tail: 'N320CD',
-        make: 'Airbus',
-        model: 'A320',
-        year: 2019,
-        serial: 'MSN-4567',
-        typeCode: 'A320',
-        engine: 'CFM56-5B4',
-        seats: 180,
-        riskScore: 18,
-        status: 'active',
-        owners: [
-          {
-            name: 'American Airlines',
-            type: 'Airline',
-            startDate: '2019-06-20',
-            endDate: null
-          }
-        ],
-        accidents: [],
-        adDirectives: [],
-        flightHours: 12850,
-        cycles: 7230,
-        lastInspection: '2024-09-10',
-        nextInspection: '2025-03-10',
-        source: 'enhanced_demo'
-      },
-      'N172EF': {
-        tail: 'N172EF',
-        make: 'Cessna',
-        model: '172',
-        year: 2020,
-        serial: '172-12345',
-        typeCode: 'C172',
-        engine: 'Lycoming O-320-D2J',
-        seats: 4,
-        riskScore: 8,
-        status: 'active',
-        owners: [
-          {
-            name: 'Flight Training Academy',
-            type: 'Flight School',
-            startDate: '2020-01-10',
-            endDate: null
-          }
-        ],
-        accidents: [],
-        adDirectives: [],
-        flightHours: 1250,
-        cycles: 890,
-        lastInspection: '2024-10-01',
-        nextInspection: '2025-04-01',
-        source: 'enhanced_demo'
+        },
+        accidents: true
       }
-    };
+    });
 
-    const aircraftSummary = DEMO_AIRCRAFT_SUMMARY[tail.toUpperCase()];
-    
-    if (aircraftSummary) {
-      return new Response(JSON.stringify(aircraftSummary), {
+    if (aircraft) {
+      // Get AD directives for this aircraft type
+      const adDirectives = await prisma.adDirective.findMany({
+        where: {
+          makeModelKey: `${aircraft.make}-${aircraft.model}`,
+          status: 'OPEN'
+        }
+      });
+
+      // Calculate risk score based on real data
+      const riskScore = Math.min(100, Math.max(0, 
+        (adDirectives.length * 5) + 
+        (aircraft.accidents.length * 20) + 
+        (aircraft.owners.length * 2)
+      ));
+
+      const summary = {
+        tail: aircraft.tail,
+        make: aircraft.make,
+        model: aircraft.model,
+        year: aircraft.year,
+        serial: aircraft.serial,
+        typeCode: aircraft.typeCode,
+        engine: aircraft.engine,
+        seats: aircraft.seats,
+        riskScore,
+        status: 'active',
+        owners: aircraft.owners.map(o => ({
+          name: o.owner.name,
+          type: o.owner.type,
+          startDate: o.startDate,
+          endDate: o.endDate
+        })),
+        accidents: aircraft.accidents.map(a => ({
+          date: a.date,
+          severity: a.severity,
+          phase: a.phase,
+          injuries: a.injuries,
+          fatalities: a.fatalities
+        })),
+        adDirectives: adDirectives.map(ad => ({
+          ref: ad.ref,
+          summary: ad.summary,
+          status: ad.status,
+          severity: ad.severity,
+          effectiveDate: ad.effectiveDate
+        })),
+        source: 'database'
+      };
+
+      return new Response(JSON.stringify(summary), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...CORS },
       });
@@ -324,53 +265,18 @@ async function handleLiveTracking(request: Request): Promise<Response> {
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const minutes = parseInt(url.searchParams.get('minutes') || '30');
 
-    // Enhanced demo data for live tracking
-    const DEMO_LIVE_POSITIONS = [
-      {
-        tail: 'N737AB',
-        lat: 40.7128,
-        lon: -74.0060,
-        alt: 35000,
-        speed: 450,
-        heading: 270,
-        ts: new Date(Date.now() - 5 * 60 * 1000),
-        aircraft: {
-          make: 'Boeing',
-          model: '737-800',
-          year: 2018
-        }
+    // Get real live tracking data from database
+    const cutoffTime = new Date(Date.now() - minutes * 60 * 1000);
+    const livePositions = await prisma.eventLive.findMany({
+      where: {
+        ts: { gte: cutoffTime }
       },
-      {
-        tail: 'N320CD',
-        lat: 41.8781,
-        lon: -87.6298,
-        alt: 28000,
-        speed: 380,
-        heading: 180,
-        ts: new Date(Date.now() - 8 * 60 * 1000),
-        aircraft: {
-          make: 'Airbus',
-          model: 'A320',
-          year: 2019
-        }
+      include: {
+        aircraft: true
       },
-      {
-        tail: 'N172EF',
-        lat: 33.9425,
-        lon: -118.4081,
-        alt: 3500,
-        speed: 120,
-        heading: 90,
-        ts: new Date(Date.now() - 2 * 60 * 1000),
-        aircraft: {
-          make: 'Cessna',
-          model: '172',
-          year: 2020
-        }
-      }
-    ];
-
-    const livePositions = DEMO_LIVE_POSITIONS.slice(0, limit);
+      orderBy: { ts: 'desc' },
+      take: limit
+    });
 
       if (livePositions.length > 0) {
         const positions = livePositions.map((pos: any, i: number) => ({
@@ -392,7 +298,7 @@ async function handleLiveTracking(request: Request): Promise<Response> {
           positions,
           count: positions.length,
           timeRange: `${minutes} minutes`,
-          source: 'enhanced_demo'
+          source: 'database'
         }), {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...CORS },

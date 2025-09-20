@@ -6,13 +6,19 @@
     "./client": "./src/client.ts"
   },
   "devDependencies": {
-    "prisma": "^5.18.0"
+    "@types/node": "^20.19.17",
+    "prisma": "^5.18.0",
+    "tsx": "^4.20.5"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0"
   },
   "scripts": {
     "gen": "prisma generate",
-    "migrate": "prisma migrate dev"
+    "migrate": "prisma migrate dev",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
