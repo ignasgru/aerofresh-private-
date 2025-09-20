@@ -15,10 +15,7 @@
     "tail:etl": "wrangler tail aerofresh-etl"
   },
   "dependencies": {
-    "@aerofresh/core": "workspace:*",
-    "@aerofresh/db": "workspace:*",
-    "@prisma/adapter-d1": "^6.16.2",
-    "@prisma/client": "^5.22.0"
+    "@aerofresh/core": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240821.0",

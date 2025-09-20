@@ -5,7 +5,7 @@
  * and manages data ingestion from various aviation data sources
  */
 
-import { PrismaClient } from '@prisma/client';
+// Removed Prisma import - using direct API calls instead
 
 // Cloudflare Workers types
 type ScheduledEvent = any;
